@@ -6,7 +6,7 @@ AVISO="/*! © 2026 Inspire & Create Studio. Todos los derechos reservados. Prohi
 ESBUILD="${ESBUILD:-npx --yes esbuild@0.28.2}"
 rm -rf dist && mkdir dist
 # Todo lo publicable (sin la carpeta .git, el propio script ni dist)
-find . -mindepth 1 -maxdepth 1 ! -name '.git' ! -name '.github' ! -name 'dist' ! -name 'build.sh' ! -name 'README.md' ! -name 'node_modules' -exec cp -r {} dist/ \;
+find . -mindepth 1 -maxdepth 1 ! -name '.git' ! -name '.github' ! -name 'dist' ! -name 'build.sh' ! -name 'functions' ! -name 'README.md' ! -name 'node_modules' -exec cp -r {} dist/ \;
 cd dist
 find . -name '*.js' -o -name '*.css' | while read -r f; do
   $ESBUILD "$f" --minify --legal-comments=none --charset=utf8 --log-level=warning --outfile="$f.min"

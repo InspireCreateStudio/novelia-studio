@@ -31,16 +31,6 @@ function cosasCalendario(pids) {
     caps.forEach((n, i) => { if (n.e && n.e.plan) add(n.e.plan, { tipo: 'cap', pid, id: n.id, num: i + 1, txt: sinNumero(n.titulo) || `Capítulo ${i + 1}`, hecho: !capPendiente(n), obj: Number(n.e.obj) || 0 }); });
     if (p.fechaLimite) add(p.fechaLimite, { tipo: 'entrega', pid, txt: `Entrega: ${p.titulo}` });
     M.cabos.filter(c => c.pid === pid && c.due && !c.done).forEach(c => add(c.due, { tipo: 'cabo', pid, id: c.id, txt: c.text }));
-    const P = M.publicar && M.publicar[pid];
-    if (P) {
-      (P.prod && P.prod.fases || []).filter(f => f.fecha).forEach(f => add(f.fecha, { tipo: 'prod', pid, txt: f.nombre, hecho: f.estado === 'hecho' }));
-      if (P.lanz && P.lanz.fecha) {
-        add(P.lanz.fecha, { tipo: 'lanz', pid, txt: `Lanzamiento: ${p.titulo}` });
-        if (P.lanz.preventa) add(P.lanz.preventa, { tipo: 'lanz', pid, txt: `Preventa: ${p.titulo}` });
-        (P.lanz.tareas || []).filter(t => !t.hecho).forEach(t => add(diaStr(sumarDias(deStr(P.lanz.fecha), t.dias)), { tipo: 'tarea', pid, txt: t.texto }));
-      }
-      (P.redes || []).filter(r => r.fecha && !r.publicado).forEach(r => add(r.fecha, { tipo: 'redes', pid, txt: `${r.formato}: ${r.tema || 'sin tema'}` }));
-    }
   });
   (M.eventos || []).filter(e => !e.pid || pids.includes(e.pid)).forEach(e => add(e.fecha, { tipo: 'evento', pid: e.pid, id: e.id, txt: e.titulo, ev: e }));
   return out;

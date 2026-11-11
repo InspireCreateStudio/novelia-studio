@@ -134,7 +134,6 @@ VISTAS.inicio = (el) => {
   const saludo = hora < 6 ? 'Buenas noches' : hora < 14 ? 'Buenos días' : hora < 21 ? 'Buenas tardes' : 'Buenas noches';
   el.innerHTML = `<div class="pagina">
     <p class="suave" style="margin:0 0 6px">${saludo}${P.nombre ? ', ' + esc(P.nombre.split(' ')[0]) : ''}</p>
-    ${!M.importadoTaller ? `<div class="tarjeta aviso-taller" style="margin-bottom:18px;display:flex;gap:16px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:240px"><b>¿Vienes de las 13 extensiones del Taller?</b><div class="suave" style="font-size:13px">Trae tus cabos, ideas, personajes, cronología, estructura, tablero, palabras y ajustes con la copia de seguridad.</div></div><button class="btn prim" id="ir-importar">Traer mis datos</button><button class="icono" id="ocultar-importar" title="No volver a mostrar">✕</button></div>` : ''}
     <div class="tarjeta" style="margin-bottom:18px">
       <div class="perfil">
         <div class="foto">${P.foto ? `<img src="${P.foto}" alt="">` : esc(inicial(P.nombre))}</div>
@@ -183,10 +182,6 @@ VISTAS.inicio = (el) => {
   $('.pagina', el).appendChild(extra);
   pintarBloqueoInicio();
   $('#ir-cabos', el).onclick = () => { planTab = 'cabos'; mostrarVista('plan'); };
-  if ($('#ir-importar', el)) {
-    $('#ir-importar', el).onclick = () => elegirCopiaTaller();
-    $('#ocultar-importar', el).onclick = () => { M.importadoTaller = 'oculto'; guardarMeta(); mostrarVista('inicio'); };
-  }
   $('#seguir', el).onclick = () => mostrarVista('escribir');
   $('#cambiar', el).onclick = () => modalProyectos();
   $('#ir-retos', el).onclick = () => mostrarVista('retos');

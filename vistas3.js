@@ -78,22 +78,40 @@ function pub(pid = M.actual) {
 // =====================================================================
 //  VISTA PUBLICAR
 // =====================================================================
-let pubTab = 'ficha';
+// Lo de publicar (ficha, Amazon, producción, lanzamiento, redes y web) vive ahora en el Kit Escritoras.
+// Aquí se quedan las citas que guardas mientras escribes, y el botón para pasarlo todo al Kit.
+let pubTab = 'citas';
 VISTAS.publicar = (cont) => {
   const P = pub(); const p = proyecto();
-  const L = P.lanz;
-  const faltan = L.fecha ? diasEntre(new Date(), deStr(L.fecha)) : null;
-  const pendientes = L.tareas.filter(t => !t.hecho).length;
-  const tabs = [['ficha', 'Ficha'], ['kdp', 'Amazon KDP'], ['prod', 'Producción'], ['lanz', 'Lanzamiento'], ['redes', 'Redes'], ['citas', 'Citas'], ['web', 'Web']];
   cont.innerHTML = `<div class="pagina" style="max-width:1180px">
-    <div class="fila sep" style="flex-wrap:wrap;align-items:flex-end;margin-bottom:8px"><div><h1>Publicar «${esc(P.ficha.titulo || p.titulo)}»</h1>
-      <p class="sub" style="margin-bottom:0">${L.fecha ? (faltan > 0 ? `Sale el ${fechaLarga(deStr(L.fecha))}: <b>faltan ${plural(faltan, 'día')}</b>` : faltan === 0 ? '<b>¡Hoy es el día!</b>' : `Salió el ${fechaLarga(deStr(L.fecha))}`) + (L.tareas.length ? ` · ${plural(pendientes, 'tarea pendiente', 'tareas pendientes')}` : '') : 'Todo lo de publicar y lanzar esta novela, junto.'}</p></div></div>
-    <div class="segmentos" style="margin:18px 0 22px;flex-wrap:wrap">${tabs.map(([k, t]) => `<button data-pb="${k}"${pubTab === k ? ' class="on"' : ''}>${t}</button>`).join('')}</div>
+    <h1>Citas de «${esc(p.titulo)}»</h1>
+    <div class="tarjeta fila" style="flex-wrap:wrap;gap:14px;margin:14px 0 22px"><div style="flex:1;min-width:260px"><b>Pasar al Kit Escritoras</b>
+      <div class="suave" style="font-size:13px">Descarga un archivo con el título, las palabras escritas y las citas${tieneDatosPublicar(P) ? ', y lo que tenías de Amazon, producción, lanzamiento y redes' : ''}. En el Kit, ve a <b>Libro › Traer de Novelia Studio</b> y elígelo.</div></div>
+      <button class="btn prim" id="ct-kit">Descargar para el Kit</button></div>
     <div id="pub-cuerpo"></div></div>`;
-  $$('[data-pb]', cont).forEach(b => b.onclick = () => { pubTab = b.dataset.pb; VISTAS.publicar(cont); });
-  const c = $('#pub-cuerpo', cont);
-  ({ ficha: pubFicha, kdp: pubKdp, prod: pubProd, lanz: pubLanz, redes: pubRedes, citas: pubCitas, web: pubWeb })[pubTab](c, P, cont);
+  $('#ct-kit', cont).onclick = () => exportarParaKit();
+  pubCitas($('#pub-cuerpo', cont), P);
 };
+function tieneDatosPublicar(P) {
+  const F = P.ficha || {}, K = P.kdp || {};
+  return !!(F.sinopsisLarga || F.sinopsisCorta || F.pitch || (K.keywords || []).some(Boolean) || (P.lanz && (P.lanz.fecha || P.lanz.tareas.length)) || P.redes.length || (P.prod && P.prod.betas.length));
+}
+async function exportarParaKit() {
+  const p = proyecto(); const P = pub();
+  let portada = '';
+  const im = await leerImagen(P.ficha && P.ficha.portada);
+  if (im) {
+    const i = new Image(); await new Promise(r => { i.onload = r; i.onerror = r; i.src = im.data; });
+    if (i.width) { const k = Math.min(1, 800 / Math.max(i.width, i.height)); const cv = document.createElement('canvas'); cv.width = Math.round(i.width * k); cv.height = Math.round(i.height * k); cv.getContext('2d').drawImage(i, 0, 0, cv.width, cv.height); portada = cv.toDataURL('image/jpeg', 0.85); }
+  }
+  const publicar = JSON.parse(JSON.stringify(P));
+  if (publicar.ficha) publicar.ficha.portada = null;
+  if (publicar.kdp) (publicar.kdp.aplus || []).forEach(m => { m.imgs = []; });
+  const datos = { tipo: 'novelia-para-kit', v: 1, exportado: new Date().toISOString(), autora: (M.perfil && M.perfil.nombre) || '',
+    novela: { titulo: p.titulo, objetivo: p.objetivo || 0, palabras: totalProyecto(), portada, citas: [], publicar } };
+  descargar(new Blob([JSON.stringify(datos, null, 1)], { type: 'application/json' }), `Para el Kit - ${nombreArchivo(p.titulo)}.json`);
+  aviso('Archivo descargado: ábrelo desde el Kit Escritoras');
+}
 const guardarPub = debounce(() => guardarMeta(), 400);
 // Enlaza inputs con data-ruta="ficha.titulo" al objeto P
 function enlazarRutas(raiz, P, alCambiar) {
@@ -405,7 +423,7 @@ function guardarCita(texto, capTitulo) {
   if (!t) return;
   if (P.citas.some(c => c.texto === t)) return aviso('Esa cita ya estaba guardada');
   P.citas.unshift({ id: uid(), texto: t, cap: capTitulo || '', creada: Date.now() });
-  guardarMeta(); aviso('Cita guardada en Publicar › Citas');
+  guardarMeta(); aviso('Cita guardada en Citas');
 }
 const ESTILOS_TARJ = {
   acento: { n: 'Color', fondo: () => getComputedStyle(document.documentElement).getPropertyValue('--acento-base').trim() || '#2f5d50', tinta: '#fffdf8' },
@@ -624,17 +642,6 @@ function enlazarTuMesa(cont) {
     await ajustesOrig(cont);
     const rej = $('.pagina .rejilla', cont);
     if (rej) { const d = document.createElement('div'); d.innerHTML = tarjetaTuMesa(); rej.insertBefore(d.firstElementChild, rej.children[1]); enlazarTuMesa(cont); }
-  };
-  const inicioOrig = VISTAS.inicio;
-  VISTAS.inicio = (cont) => {
-    inicioOrig(cont);
-    const html = tarjetaLanzamientoInicio();
-    if (html) {
-      const d = document.createElement('div'); d.innerHTML = html;
-      const ref = $('.pagina > .rejilla', cont);
-      [...d.children].forEach(x => $('.pagina', cont).insertBefore(x, ref));
-      $$('[data-ir-pub]', cont).forEach(b => b.onclick = () => { const pid = b.closest('[data-pid]').dataset.pid; if (pid !== M.actual) cambiarProyecto(pid); pubTab = 'lanz'; mostrarVista('publicar'); });
-    }
   };
 })();
 

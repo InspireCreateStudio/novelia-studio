@@ -911,11 +911,6 @@ VISTAS.ajustes = async (cont) => {
   cont.innerHTML = `<div class="pagina" style="max-width:860px">
     <h1>Ajustes</h1><p class="sub">Todo se guarda en tu propio Chrome. Nada sale de tu ordenador.</p>
     <div class="rejilla" style="gap:18px">
-      <div class="tarjeta" id="aj-taller"><h2>Traer mis datos del Taller (las 13 extensiones)</h2>
-        <ol style="margin:0 0 12px;padding-left:20px;line-height:1.7">
-          <li>Pulsa el icono de <b>Copia de seguridad del taller</b> → <b>Hacer copia ahora</b>. Se guarda en Descargas › Taller de novela.</li>
-          <li>Pulsa aquí y elige ese archivo («Copia … .json»).</li></ol>
-        <div class="fila" style="flex-wrap:wrap"><button class="btn prim" id="aj-taller-b">Elegir la copia del Taller…</button>${M.importadoTaller && M.importadoTaller !== 'oculto' ? `<span class="suave" style="font-size:12.5px">Última importación: ${new Date(M.importadoTaller).toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' })}. Puedes repetirla: no duplica nada.</span>` : ''}</div></div>
 
       <div class="tarjeta"><h2>Exportar e importar</h2>
         <div class="fila" style="flex-wrap:wrap"><button class="btn prim" id="aj-docx">Descargar «${esc(p.titulo)}» en Word</button><button class="btn" id="aj-txt">En .txt</button><button class="btn" id="aj-pdf">En PDF</button><button class="btn" id="aj-imp">Importar un Word o .txt…</button></div>
@@ -963,7 +958,6 @@ VISTAS.ajustes = async (cont) => {
           <span>${x.id === M.actual ? '<span class="suave" style="font-size:12.5px;margin-right:8px">abierta</span>' : `<button class="btn peq" data-abrir="${x.id}">Abrir</button>`}${M.proyectos.length > 1 ? ` <button class="btn peq" data-borrar-p="${x.id}" style="color:var(--rojo)">Borrar</button>` : ''}</span></div>`).join('')}
         <button class="btn peq" id="aj-np" style="margin-top:12px">+ Nueva novela</button></div>
     </div></div>`;
-  $('#aj-taller-b', cont).onclick = () => elegirCopiaTaller();
   $('#aj-docx', cont).onclick = exportarDocx;
   $('#aj-txt', cont).onclick = exportarTxt;
   $('#aj-pdf', cont).onclick = () => { pestanaLeer = 'novela'; mostrarVista('leer'); setTimeout(() => window.print(), 400); };

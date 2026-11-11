@@ -80,7 +80,9 @@ function despuesDeIniciar() {
   // Aviso si no está el ayudante (solo en Chrome de ordenador)
   const escritorio = /Chrome\//.test(navigator.userAgent) && !/Mobile|Android|iPad|iPhone/.test(navigator.userAgent);
   setTimeout(() => {
-    if (Puente.presente || !escritorio || sessionStorage.getItem('sin-ayudante')) return;
+    // Solo avisa a quien ya usaba el ayudante (si alguien no lo ha instalado nunca, no le hace falta saberlo)
+    try { if (Puente.presente) { localStorage.setItem('novelia-usa-ayudante', '1'); return; } if (!localStorage.getItem('novelia-usa-ayudante')) return; } catch (e) { return; }
+    if (!escritorio || sessionStorage.getItem('sin-ayudante')) return;
     const b = document.createElement('div');
     b.className = 'barra-ayudante';
     b.innerHTML = `<span>Sin el <b>ayudante de Chrome</b> no funcionan el botón derecho en otras webs ni el bloqueo de webs.</span><button class="icono" title="Cerrar">✕</button>`;

@@ -909,7 +909,7 @@ VISTAS.ajustes = async (cont) => {
   const A = M.ajustes; const p = proyecto();
   const ultima = await Store.get('mesa:ultimaCopia');
   cont.innerHTML = `<div class="pagina" style="max-width:860px">
-    <h1>Ajustes</h1><p class="sub">Todo se guarda en tu propio Chrome. Nada sale de tu ordenador.</p>
+    <h1>Ajustes</h1><p class="sub">Todo se guarda en este navegador, en tu aparato. Solo sale de ahí si conectas Google Drive.</p>
     <div class="rejilla" style="gap:18px">
 
       <div class="tarjeta"><h2>Exportar e importar</h2>
@@ -930,7 +930,7 @@ VISTAS.ajustes = async (cont) => {
       <div class="tarjeta"><h2>Bloqueo de webs</h2>
         <label class="check"><input type="checkbox" id="aj-siempre"${BLOQ.siempre ? ' checked' : ''}><span>Bloquearlas siempre, no solo en las sesiones<small>Con pausas de 5, 15 o 30 minutos desde Inicio.</small></span></label>
         <label class="campo"><span>Webs bloqueadas (una por línea)</span><textarea id="aj-webs" rows="6">${esc(A.webs.join('\n'))}</textarea></label>
-        <p class="tenue" style="margin:0;font-size:12.5px">Las frases de la pantalla de bloqueo están en el archivo frases.js de la carpeta del ayudante.</p></div>
+        <p class="tenue" style="margin:0;font-size:12.5px">${Puente.presente ? 'Las frases de la pantalla de bloqueo están en el archivo frases.js de la carpeta del ayudante.' : 'El bloqueo de webs necesita el ayudante de Chrome (una extensión aparte). Sin él, el resto de Novelia funciona igual.'}</p></div>
 
       <div class="tarjeta"><h2>Revisión</h2>
         <label class="campo"><span>Muletillas que quieres que te marque (una por línea; un * al final vale para cualquier terminación: sonri* = sonrió, sonriendo…)</span><textarea id="aj-mul" rows="8">${esc((A.muletillas || Analisis.MULETILLAS_DEF).join('\n'))}</textarea></label>

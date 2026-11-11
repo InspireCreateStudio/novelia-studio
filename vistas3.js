@@ -108,7 +108,7 @@ async function exportarParaKit() {
   if (publicar.ficha) publicar.ficha.portada = null;
   if (publicar.kdp) (publicar.kdp.aplus || []).forEach(m => { m.imgs = []; });
   const datos = { tipo: 'novelia-para-kit', v: 1, exportado: new Date().toISOString(), autora: (M.perfil && M.perfil.nombre) || '',
-    perfil: M.perfil ? { nombre: M.perfil.nombre || '', usuario: M.perfil.usuario || '', genero: M.perfil.genero || '', foto: M.perfil.foto || '', enlaces: M.perfil.enlaces || {} } : null,
+    perfil: M.perfil ? { nombre: M.perfil.nombre || '', usuario: M.perfil.usuario || '', genero: M.perfil.genero || '', foto: M.perfil.foto || '', enlaces: M.perfil.enlaces || {}, otros: M.perfil.otros || [] } : null,
     novela: { titulo: p.titulo, objetivo: p.objetivo || 0, palabras: totalProyecto(), portada, citas: [], publicar } };
   descargar(new Blob([JSON.stringify(datos, null, 1)], { type: 'application/json' }), `Para el Kit - ${nombreArchivo(p.titulo)}.json`);
   aviso('Archivo descargado: ábrelo desde el Kit Escritoras');

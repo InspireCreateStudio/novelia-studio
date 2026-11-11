@@ -129,7 +129,9 @@ VISTAS.inicio = (el) => {
   const faltanDias = p.fechaLimite ? diasEntre(new Date(), deStr(p.fechaLimite)) : null;
   const retos = M.retos.filter(x => deStr(x.fin) >= deStr(diaStr()));
   const ideas = M.ideas.filter(i => !i.hecha).slice(0, 4);
-  const enlaces = Object.entries(P.enlaces || {}).filter(([, v]) => v);
+  const NOMBRES_RED = { instagram: 'Instagram', tiktok: 'TikTok', amazon: 'Amazon', web: 'Web' };
+  const enlaces = [...Object.entries(P.enlaces || {}).filter(([, v]) => v).map(([k, v]) => [NOMBRES_RED[k] || k[0].toUpperCase() + k.slice(1), urlEnlace(k, v)]),
+    ...(P.otros || []).filter(o => o && o.u).map(o => [o.t || 'Enlace', urlEnlace('', o.u)])];
   const hora = new Date().getHours();
   const saludo = hora < 6 ? 'Buenas noches' : hora < 14 ? 'Buenos días' : hora < 21 ? 'Buenas tardes' : 'Buenas noches';
   el.innerHTML = `<div class="pagina">
@@ -141,7 +143,7 @@ VISTAS.inicio = (el) => {
           <h1 style="margin:0">${esc(P.nombre || 'Tu nombre')}</h1>
           <div class="suave">${esc(P.usuario || '')}${P.genero ? ' · ' + esc(P.genero) : ''}</div>
           ${P.bio ? `<p style="font-family:var(--serif);font-size:16px;margin:10px 0 8px;white-space:pre-wrap">${esc(P.bio)}</p>` : ''}
-          ${enlaces.length ? `<div class="enlaces">${enlaces.map(([k, v]) => `<a href="${esc(/^https?:/.test(v) ? v : 'https://' + v)}" target="_blank">${esc(k[0].toUpperCase() + k.slice(1))}</a>`).join('')}</div>` : ''}
+          ${enlaces.length ? `<div class="enlaces">${enlaces.map(([t, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)}</a>`).join('')}</div>` : ''}
         </div>
         <button class="btn" id="ed-perfil">Editar perfil</button>
       </div>
@@ -190,6 +192,15 @@ VISTAS.inicio = (el) => {
   enlazarRetos(el);
 };
 
+// Enlace completo a partir de un usuario o una dirección
+function urlEnlace(k, v) {
+  v = String(v || '').trim(); if (!v) return '';
+  if (/^https?:\/\//i.test(v)) return v;
+  const h = v.replace(/^@/, '');
+  if (k === 'instagram') return 'https://www.instagram.com/' + h;
+  if (k === 'tiktok') return 'https://www.tiktok.com/@' + h;
+  return 'https://' + v.replace(/^\/+/, '');
+}
 function editarPerfil() {
   const P = M.perfil;
   modal(`<h3>Tu perfil</h3>
@@ -198,9 +209,19 @@ function editarPerfil() {
     <label class="campo"><span>Nombre (o seudónimo)</span><input id="pf-n" value="${esc(P.nombre)}"></label>
     <div class="rejilla r2" style="gap:10px"><label class="campo"><span>Usuario</span><input id="pf-u" value="${esc(P.usuario)}"></label><label class="campo"><span>Género</span><input id="pf-g" value="${esc(P.genero)}"></label></div>
     <label class="campo"><span>Bio</span><textarea id="pf-b" rows="3" placeholder="Escritora de romance · Mi primera novela, muy pronto">${esc(P.bio)}</textarea></label>
-    <div class="rejilla r3" style="gap:10px"><label class="campo"><span>Instagram</span><input id="pf-i" value="${esc(P.enlaces.instagram)}"></label><label class="campo"><span>TikTok</span><input id="pf-t" value="${esc(P.enlaces.tiktok)}"></label><label class="campo"><span>Web</span><input id="pf-w" value="${esc(P.enlaces.web)}"></label></div>
+    <div class="rejilla r2" style="gap:10px"><label class="campo"><span>Instagram (usuario o enlace)</span><input id="pf-i" value="${esc(P.enlaces.instagram || '')}"></label><label class="campo"><span>TikTok (usuario o enlace)</span><input id="pf-t" value="${esc(P.enlaces.tiktok || '')}"></label>
+      <label class="campo"><span>Tu perfil de autora en Amazon</span><input id="pf-a" value="${esc(P.enlaces.amazon || '')}" placeholder="https://www.amazon.es/stores/…"></label><label class="campo"><span>Web</span><input id="pf-w" value="${esc(P.enlaces.web || '')}"></label></div>
+    <div class="campo"><span>Más enlaces (newsletter, Goodreads, tu tienda…)</span><div id="pf-otros"></div><button type="button" class="btn peq" id="pf-mas" style="align-self:flex-start;margin-top:6px">+ Añadir enlace</button></div>
     <div class="pie"><button class="btn" data-cerrar>Cancelar</button><button class="btn prim" id="pf-ok">Guardar</button></div>`, { ancho: 560, alAbrir: (m, cerrar) => {
     let foto = P.foto;
+    const otros = (P.otros || []).map(o => ({ ...o }));
+    const pintarOtros = () => {
+      $('#pf-otros', m).innerHTML = otros.map((o, i) => `<div class="fila" style="gap:6px;margin-top:6px"><input data-o="${i}" data-c="t" value="${esc(o.t || '')}" placeholder="Nombre" style="flex:1"><input data-o="${i}" data-c="u" value="${esc(o.u || '')}" placeholder="Enlace" style="flex:2"><button type="button" class="btn peq" data-quitar="${i}" title="Quitar enlace">✕</button></div>`).join('');
+      $$('[data-o]', m).forEach(x => x.oninput = () => { otros[+x.dataset.o][x.dataset.c] = x.value; });
+      $$('[data-quitar]', m).forEach(b => b.onclick = () => { otros.splice(+b.dataset.quitar, 1); pintarOtros(); });
+    };
+    pintarOtros();
+    $('#pf-mas', m).onclick = () => { otros.push({ t: '', u: '' }); pintarOtros(); const u = $$('[data-c="t"]', m).pop(); if (u) u.focus(); };
     $('#pf-subir', m).onclick = () => $('#pf-file', m).click();
     $('#pf-quitar', m) && ($('#pf-quitar', m).onclick = () => { foto = ''; $('#pf-foto', m).textContent = inicial(P.nombre); });
     $('#pf-file', m).onchange = (e) => {
@@ -213,7 +234,8 @@ function editarPerfil() {
       }; img.src = URL.createObjectURL(f);
     };
     $('#pf-ok', m).onclick = () => {
-      Object.assign(P, { nombre: $('#pf-n', m).value.trim(), usuario: $('#pf-u', m).value.trim(), genero: $('#pf-g', m).value.trim(), bio: $('#pf-b', m).value.trim(), foto, enlaces: { instagram: $('#pf-i', m).value.trim(), tiktok: $('#pf-t', m).value.trim(), web: $('#pf-w', m).value.trim() } });
+      Object.assign(P, { nombre: $('#pf-n', m).value.trim(), usuario: $('#pf-u', m).value.trim(), genero: $('#pf-g', m).value.trim(), bio: $('#pf-b', m).value.trim(), foto, enlaces: { instagram: $('#pf-i', m).value.trim(), tiktok: $('#pf-t', m).value.trim(), amazon: $('#pf-a', m).value.trim(), web: $('#pf-w', m).value.trim() },
+        otros: otros.map(o => ({ t: String(o.t || '').trim(), u: String(o.u || '').trim() })).filter(o => o.u) });
       guardarMeta(); cerrar(); mostrarVista('inicio');
     };
   } });

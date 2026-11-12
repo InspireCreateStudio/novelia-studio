@@ -8,7 +8,7 @@
 // =====================================================================
 
 const SINCRO_CLIENT_ID = '171808282615-3onraig9fvo9gg2fea3mdsouon7h6pv9.apps.googleusercontent.com'; // se puede dejar fijo aquí; si no, se pega en Ajustes
-const SCOPE_DRIVE = 'https://www.googleapis.com/auth/drive.appdata';
+const SCOPE_DRIVE = 'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/drive.file';
 const NO_SINCRO = (k) => k === 'mesa:inbox' || k === 'mesa:ultimaCopia' || k.startsWith('mesa:v:') || k === 'mesa:vista';
 const Sincro = {
   e: (() => { try { return JSON.parse(localStorage.getItem('novelia:sincro')) || {}; } catch (e) { return {}; } })(),

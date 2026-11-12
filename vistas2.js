@@ -946,9 +946,9 @@ VISTAS.ajustes = async (cont) => {
         <p class="tenue" style="margin:0;font-size:12.5px">Las voces son las de tu ordenador; en Mac suele haber varias en español (las «Mejoradas» o «Premium» suenan mejor: Ajustes del sistema › Accesibilidad › Contenido leído). Elige la voz y la de los diálogos en Leer.</p></div>
 
       <div class="tarjeta"><h2>Copia de seguridad</h2>
-        <p style="margin:0 0 10px">${ultima ? 'Última copia: ' + new Date(ultima).toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' }) : 'Todavía no hay ninguna copia. Haz una ahora.'}<br><span class="suave">Se guardan en tu carpeta de Descargas («Novelia Studio · Copia …»). Muévelas a Drive o a un USB de vez en cuando. Incluyen también el tablero.</span></p>
+        <p style="margin:0 0 10px">${ultima ? 'Última copia: ' + new Date(ultima).toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' }) : 'Todavía no hay ninguna copia. Haz una ahora.'}<br><span class="suave">${typeof Sincro !== 'undefined' && Sincro.e && Sincro.e.conectado ? `Con Google Drive conectado, van a tu Drive, a la carpeta «${CopiaDrive.CARPETA}». Me quedo con las dos últimas y borro las anteriores.${CopiaDrive.faltaPermiso('Novelia Studio · Copia') ? ' <b style="color:var(--rojo)">Falta tu permiso: desconecta y vuelve a conectar Google Drive.</b>' : ''}` : 'Se guardan en tu carpeta de Descargas («Novelia Studio · Copia …»). Si conectas Google Drive, irán a tu Drive.'} Incluyen también el tablero.</span></p>
         <div class="fila" style="flex-wrap:wrap"><button class="btn prim" id="aj-copia">Hacer copia ahora</button>
-          <label class="fila suave" style="font-size:13px">Copia automática <select id="aj-cd" class="txt" style="width:auto;padding:4px 8px">${[[1, 'cada día'], [3, 'cada 3 días'], [7, 'cada semana'], [0, 'nunca']].map(([v, t]) => `<option value="${v}"${A.copiaDias === v ? ' selected' : ''}>${t}</option>`).join('')}</select></label>
+          <label class="fila suave" style="font-size:13px">Copia automática <select id="aj-cd" class="txt" style="width:auto;padding:4px 8px">${[[0, 'nunca'], [1, 'cada día'], [3, 'cada 3 días'], [7, 'cada semana'], [15, 'cada 15 días'], [30, 'cada mes']].map(([v, t]) => `<option value="${v}"${(A.copiaDias ?? 7) === v ? ' selected' : ''}>${t}</option>`).join('')}</select></label>
           <button class="btn" id="aj-rest">Restaurar desde una copia…</button><input type="file" id="aj-rest-f" accept=".json" hidden></div>
         <p style="margin:14px 0 8px" class="suave">¿Tienes la biblia de una novela (escaleta, personajes, cronología…)? Pásamela a Claude, te la devuelve en un archivo y la cargas aquí.</p>
         <button class="btn" id="aj-biblia">Importar biblia…</button></div>
@@ -979,7 +979,7 @@ VISTAS.ajustes = async (cont) => {
   $('#aj-copia', cont).onclick = async () => {
     guardarTexto.ya(); await Store.set('mesa:meta', M);
     const r = await hacerCopiaApp();
-    if (r && r.ok) { aviso('Copia guardada en Descargas'); VISTAS.ajustes(cont); } else aviso('No he podido guardar la copia');
+    if (r && r.ok) { if (r.dest === 'descargas' && !(Sincro.e && Sincro.e.conectado)) aviso('Copia guardada en Descargas'); VISTAS.ajustes(cont); } else aviso('No he podido guardar la copia');
   };
   $('#aj-rest', cont).onclick = () => $('#aj-rest-f', cont).click();
   $('#aj-biblia', cont).onclick = () => elegirBiblia();

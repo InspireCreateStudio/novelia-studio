@@ -11,10 +11,17 @@ async function hacerCopiaApp(auto) {
   delete todo['mesa:inbox'];
   const d = new Date();
   const nombre = `Novelia Studio · Copia ${diaStr(d)} ${pad(d.getHours())}h${pad(d.getMinutes())}.json`;
-  descargar(new Blob([JSON.stringify({ app: 'novelia-studio', version: 3, fecha: d.toISOString(), datos: todo })], { type: 'application/json' }), nombre);
+  const blob = new Blob([JSON.stringify({ app: 'novelia-studio', version: 3, fecha: d.toISOString(), datos: todo })], { type: 'application/json' });
+  // Con Google Drive conectado, la copia va a tu Drive (se quedan las dos últimas); si no, a Descargas
+  const conectado = () => !!(typeof Sincro !== 'undefined' && Sincro.e && Sincro.e.conectado);
+  const dest = await CopiaDrive.guardar({ prefijo: 'Novelia Studio · Copia', nombre, blob, auto: !!auto, app: {
+    conectado, token: () => pedirToken(false),
+    olvidarToken: () => { Sincro.token = null; localStorage.removeItem('novelia:token'); },
+    descargar, aviso,
+  } });
   await Store.set('mesa:ultimaCopia', Date.now());
-  if (auto) aviso('He guardado tu copia de seguridad semanal en Descargas');
-  return { ok: true, nombre };
+  if (auto && dest === 'descargas' && !conectado()) aviso('He guardado tu copia de seguridad en Descargas');
+  return { ok: true, nombre, dest };
 }
 
 function cortina(texto) {

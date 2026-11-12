@@ -135,6 +135,7 @@ VISTAS.inicio = (el) => {
   const hora = new Date().getHours();
   const saludo = hora < 6 ? 'Buenas noches' : hora < 14 ? 'Buenos días' : hora < 21 ? 'Buenas tardes' : 'Buenas noches';
   el.innerHTML = `<div class="pagina">
+    <div class="apps-barra"></div>
     <p class="suave" style="margin:0 0 6px">${saludo}${P.nombre ? ', ' + esc(P.nombre.split(' ')[0]) : ''}</p>
     <div class="tarjeta" style="margin-bottom:18px">
       <div class="perfil">

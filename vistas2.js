@@ -515,13 +515,13 @@ VISTAS.tablero = async (cont) => {
   const b = boards.find(x => x.id === tabCur);
   const total = cuenta(tabCur);
   cont.innerHTML = `<div class="pagina" style="max-width:1400px">
-    <div class="fila sep" style="flex-wrap:wrap;align-items:flex-start"><div><h1>${esc(b ? b.nombre : 'Todo')}</h1><p class="sub">${total ? `${plural(total, 'cosa guardada', 'cosas guardadas')} · ` : ''}Botón derecho en cualquier imagen, frase o enlace → Novelia Studio → «Guardar en el tablero».</p></div></div>
+    <div class="fila sep" style="flex-wrap:wrap;align-items:flex-start"><div><h1>${esc(b ? b.nombre : 'Todo')}</h1><p class="sub">${total ? `${plural(total, 'cosa guardada', 'cosas guardadas')} · ` : ''}${Puente.presente ? 'Botón derecho en cualquier imagen, frase o enlace → Novelia Studio → «Guardar en el tablero». También puedes pegar o arrastrar aquí.' : 'Copia una imagen, un enlace o una frase en cualquier web y pégala aquí con Ctrl+V (Cmd+V en Mac), o arrástrala. También tienes los botones «+ Imagen» y «+ Enlace o frase».'}</p></div></div>
     <div class="rejilla" style="grid-template-columns:220px minmax(0,1fr);gap:24px;align-items:start">
       <aside class="tarjeta" style="padding:10px;position:sticky;top:16px"><ul class="tab-boards" id="tb-boards"></ul><button class="btn peq" id="tb-nuevo" style="margin-top:8px">+ Nuevo tablero</button></aside>
       <div>
         <div class="fila" style="flex-wrap:wrap;margin-bottom:12px"><input class="txt" id="tb-q" placeholder="Buscar en notas, frases, webs…" value="${esc(tabBusca)}" style="width:230px">
           <span>${TIPOS_TAB.map(([k, l]) => `<span class="chip${tabTipo === k ? ' on' : ''}" data-tt="${k}">${l}</span>`).join('')}</span><span style="flex:1"></span>
-          <button class="btn peq" id="tb-nota">+ Nota</button><button class="btn peq" id="tb-pdf">Imprimir / PDF</button></div>
+          <button class="btn peq" id="tb-img">+ Imagen</button><button class="btn peq" id="tb-enl">+ Enlace o frase</button><button class="btn peq" id="tb-nota">+ Nota</button><input type="file" id="tb-img-f" accept="image/*" multiple hidden><button class="btn peq" id="tb-pdf">Imprimir / PDF</button></div>
         <div class="tb-drop" id="tb-drop">Arrastra aquí imágenes de tu ordenador o de otra web, o pégalas con Ctrl+V / Cmd+V</div>
         <div class="tb-grid" id="tb-grid"></div>
       </div></div></div>`;
@@ -605,7 +605,7 @@ VISTAS.tablero = async (cont) => {
   };
   const lista = visibles();
   const grid = $('#tb-grid', cont);
-  if (!lista.length) grid.replaceChildren(el('div', { class: 'vacio', style: 'column-span:all;padding:50px 10px' }, total ? 'Nada coincide con la búsqueda.' : 'Este tablero está vacío. Busca en Pinterest, Instagram o donde quieras, botón derecho sobre una imagen y «Guardar en el tablero».'));
+  if (!lista.length) grid.replaceChildren(el('div', { class: 'vacio', style: 'column-span:all;padding:50px 10px' }, total ? 'Nada coincide con la búsqueda.' : Puente.presente ? 'Este tablero está vacío. Busca en Pinterest, Instagram o donde quieras, botón derecho sobre una imagen y «Guardar en el tablero».' : 'Este tablero está vacío. En Pinterest, Instagram o donde quieras: botón derecho sobre una imagen → «Copiar imagen», vuelve aquí y pulsa Ctrl+V (Cmd+V en Mac). O usa «+ Imagen» para subir fotos de tu ordenador.'));
   else grid.replaceChildren(...lista.map(tarjeta));
   // visor
   const abrirLb = (it) => { lbLista = visibles().filter(i => i.type === 'img'); lbIdx = lbLista.findIndex(i => i.id === it.id); pintaLb(); $('#lb').classList.add('on'); };
@@ -635,6 +635,24 @@ VISTAS.tablero = async (cont) => {
     } else await guardarItem({ board: destino(), type: 'enlace', url: u, title: u });
     aviso('Guardado'); recargar();
   };
+  $('#tb-img', cont).onclick = () => $('#tb-img-f', cont).click();
+  $('#tb-img-f', cont).onchange = async (e) => { const fs = [...e.target.files].filter(f => f.type.startsWith('image/')); for (const f of fs) await addImagenBlob(f); e.target.value = ''; };
+  $('#tb-enl', cont).onclick = () => modal(`<h3>Guardar en el tablero</h3>
+      <p class="suave" style="margin-top:0">Pega la dirección de una web o de una imagen, o escribe una frase.</p>
+      <textarea class="txt" id="tb-enl-t" rows="3" style="width:100%" placeholder="https://… o una frase"></textarea>
+      <div class="fila" style="justify-content:flex-end;margin-top:12px"><button class="btn" data-cerrar>Cancelar</button><button class="btn prim" id="tb-enl-ok">Guardar</button></div>`, {
+    alAbrir: (m, cerrar) => {
+      const ok = async () => {
+        const t = $('#tb-enl-t', m).value.trim(); if (!t) return;
+        cerrar();
+        if (/^https?:\/\/\S+$/.test(t)) return addDesdeUrl(t);
+        await guardarItem({ board: destino(), type: 'texto', text: t, pageUrl: '', pageTitle: '' });
+        aviso('Frase guardada'); recargar();
+      };
+      $('#tb-enl-ok', m).onclick = ok;
+      $('#tb-enl-t', m).addEventListener('keydown', e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) ok(); });
+    }
+  });
   tableroPegar = async (e) => {
     if (e.target.matches('input, textarea, [contenteditable]')) return;
     const f = [...e.clipboardData.files].find(f => f.type.startsWith('image/'));

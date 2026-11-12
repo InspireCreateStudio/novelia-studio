@@ -446,7 +446,8 @@ h3 { font: 400 21px/1.25 var(--serif); margin: 0 0 8px; }
 .web-prev { border: 1px solid var(--linea); border-radius: 10px; padding: 18px; background: #fff; color: #222; font-family: Georgia, serif; zoom: .8; }
 .color-ac { width: 30px; height: 30px; border-radius: 50%; border: 3px solid var(--hoja); box-shadow: 0 0 0 1px var(--linea-fuerte); cursor: pointer; padding: 0; }
 .color-ac.on { box-shadow: 0 0 0 2px var(--tinta); }
-.rail .logo { overflow: hidden; }
+.rail .logo { overflow: hidden; flex: none; }
+.rail button { flex: none; } /* que no se aplasten si la ventana es baja: el menú hace scroll */
 input[type=range], input[type=checkbox], input[type=radio] { accent-color: var(--verde); }
 
 /* =================== Novelia Studio (app) =================== */
